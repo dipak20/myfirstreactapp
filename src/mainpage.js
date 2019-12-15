@@ -1,4 +1,6 @@
 import React from "react";
+import { push } from "react-router-redux";
+import { connect, dispatch } from "react-redux";
 
 class MainPage extends React.Component {
   state = {
@@ -11,19 +13,23 @@ class MainPage extends React.Component {
     }
   };
 
-  componentWillMount() {
-    console.log("Component will mount");
-  }
-
   componentDidMount() {
-    console.log("component did mount");
+    console.log("this.props.userName: " + this.props.userName);
+    console.log("this.props.userAddress: " + this.props.userAddress);
+    console.log("this.props.userCity: " + this.props.userCity);
   }
 
-  componentWillUpdate() {
-    console.log("Component will update");
+  componentDidUpdate(prevProps, prevState) {
+    console.log(
+      "componentDidUpdate this.props.userName: " + this.props.userName
+    );
+    console.log(
+      "componentDidUpdate this.props.userAddress: " + this.props.userAddress
+    );
+    console.log(
+      "componentDidUpdate this.props.userCity: " + this.props.userCity
+    );
   }
-
-  componentDidUpdate(prevProps, prevState) {}
 
   componentWillUnmount() {
     console.log("Component will be unmounted...");
@@ -59,7 +65,11 @@ class MainPage extends React.Component {
   submitMyForm = e => {
     e.preventDefault();
     let formInputs = { ...this.state.formContent };
-    console.table(formInputs);
+    console.log(formInputs);
+    const { name, address, city } = this.state.formContent;
+    this.props.changeuserDetails(name, address, city);
+    window.location = "/hello";
+    //this.props.goToPage("/hello");
   };
 
   render() {
@@ -72,10 +82,7 @@ class MainPage extends React.Component {
     let cityOptions = [];
     for (let city of cities) {
       cityOptions.push(
-        <option
-          value={city.id}
-          selected={this.state.formContent.city === city.id ? "selected" : ""}
-        >
+        <option key={city.id} value={city.id}>
           {city.name}
         </option>
       );
@@ -97,56 +104,52 @@ class MainPage extends React.Component {
 
         <form onSubmit={e => this.submitMyForm(e)}>
           <table>
-            <tr>
-              <td>Name: </td>
-              <td>
-                <input
-                  type="text"
-                  name="txtName"
-                  id="name"
-                  value={this.state.formContent.name}
-                  onChange={e => this.changeInput(e, "name")}
-                ></input>
-              </td>
-            </tr>
-            <tr>
-              <td>Address: </td>
-              <td>
-                <textarea
-                  name="address"
-                  id="address"
-                  value={this.state.formContent.address}
-                  onChange={e => this.changeInput(e, "address")}
-                ></textarea>
-              </td>
-            </tr>
-            <tr>
-              <td>City: </td>
-              <td>
-                <select
-                  name="city"
-                  id="city"
-                  onChange={e => this.changeInput(e, "city")}
-                >
-                  <option
-                    value={0}
-                    selected={
-                      this.state.formContent.city === 0 ? "selected" : ""
-                    }
+            <tbody>
+              <tr>
+                <td>Name: </td>
+                <td>
+                  <input
+                    type="text"
+                    name="txtName"
+                    id="name"
+                    value={this.state.formContent.name}
+                    onChange={e => this.changeInput(e, "name")}
+                  ></input>
+                </td>
+              </tr>
+              <tr>
+                <td>Address: </td>
+                <td>
+                  <textarea
+                    name="address"
+                    id="address"
+                    value={this.state.formContent.address}
+                    onChange={e => this.changeInput(e, "address")}
+                  ></textarea>
+                </td>
+              </tr>
+              <tr>
+                <td>City: </td>
+                <td>
+                  <select
+                    name="city"
+                    id="city"
+                    onChange={e => this.changeInput(e, "city")}
+                    defaultValue={this.state.formContent.city}
                   >
-                    ---Select---
-                  </option>
-                  {cityOptions}
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-                <button type="submit" id="btnSubmit">
-                  Submit
-                </button>
-              </td>
-            </tr>
+                    <option value={0}>---Select---</option>
+                    {cityOptions}
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={2}>
+                  <button type="submit" id="btnSubmit">
+                    Submit
+                  </button>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </form>
       </div>
@@ -154,4 +157,53 @@ class MainPage extends React.Component {
   }
 }
 
-export default MainPage;
+export default connect(
+  store => {
+    return {
+      userName: store.user.name,
+      userAddress: store.user.address,
+      userCity: store.user.city
+    };
+  },
+  dispatch => {
+    return {
+      changeuserDetails: (name, address, city) => {
+        dispatch({
+          type: "CHANGE_USER_DETAILS",
+          payload: { name, address, city }
+        });
+      },
+      goToPage: path => {
+        console.log("gotourl", path);
+        dispatch(push("/hello"));
+      }
+    };
+  }
+)(MainPage);
+
+/*
+const fun1 = store => {
+  return {
+    userName: store.user.name,
+    userAddress: store.user.address,
+    userCity: store.user.city
+  };
+};
+
+const fun2 = dispatch => {
+  return {
+    changeuserDetails: (name, address, city) => {
+      dispatch({
+        type: "CHANGE_USER_DETAILS",
+        payload: { name, address, city }
+      });
+    },
+    goToPage: path => {
+      console.log("gotourl", path);
+      dispatch(push("hello"));
+    }
+  };
+};
+const fun3 = connect(fun1, fun2);
+export default fun3(MainPage);
+*/
